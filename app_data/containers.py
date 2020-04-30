@@ -1,7 +1,6 @@
 from copy import copy
 
 from django.core.exceptions import ValidationError
-from django.utils import six
 
 from .registry import app_registry
 from .forms import AppDataForm
@@ -49,7 +48,7 @@ class AppDataContainerFactory(dict):
 
     def validate(self, model_instance):
         errors = {}
-        for key, value in six.iteritems(self):
+        for key, value in self.items():
             if hasattr(value, 'validate') and getattr(value, 'accessed', True):
                 try:
                     value.validate(self, model_instance)
@@ -59,7 +58,7 @@ class AppDataContainerFactory(dict):
             raise ValidationError(errors)
 
     def serialize(self):
-        for key, value in six.iteritems(self):
+        for key, value in self.items():
             if isinstance(value, AppDataContainer):
                 value = value.serialize() if value.accessed else value._data
                 super(AppDataContainerFactory, self).__setitem__(key, value)
@@ -178,7 +177,7 @@ class AppDataContainer(object):
             return default
 
     def update(self, data):
-        for k, v in six.iteritems(data):
+        for k, v in data.items():
             self[k] = v
 
     def validate(self, app_data, model_instance):
@@ -189,7 +188,7 @@ class AppDataContainer(object):
 
     def serialize(self):
         """Go through attribute cache and use ._form to serialze those values into ._data."""
-        for name, value in six.iteritems(self._attr_cache):
+        for name, value in self._attr_cache.items():
             f = self._form.fields[name]
             value = f.prepare_value(value)
             # Widget.format_value in 1.11 has a different semantic than Widget._format_value in previous versions

@@ -1,18 +1,12 @@
 from operator import methodcaller
 from copy import deepcopy
 
-from django.forms.forms import NON_FIELD_ERRORS, Form
+from django.core.exceptions import NON_FIELD_ERRORS
+from django.forms.forms import Form
 from django.forms.formsets import formset_factory
 from django.forms.models import modelform_factory, _get_foreign_key, BaseInlineFormSet, BaseModelFormSet
 from django.utils.safestring import mark_safe
-from django.utils import six
-from django.utils.six import with_metaclass
-
-
-try:
-    from django.forms.utils import pretty_name
-except ImportError:
-    from django.forms.forms import pretty_name  # COMPAT: Django==1.8
+from django.forms.utils import pretty_name
 
 
 class AppDataForm(Form):
@@ -49,11 +43,11 @@ class BaseFieldsDescriptor(object):
             bf.update(owner.ModelForm.base_fields)
 
             # go through all the app forms...
-            for label, opts in six.iteritems(owner.get_app_form_opts()):
+            for label, opts in owner.get_app_form_opts().items():
                 Form = app_container[label].form_class
                 exclude = set(opts.get('exclude', ()))
                 fields = opts.get('fields', None)
-                for name, field in six.iteritems(Form.base_fields):
+                for name, field in Form.base_fields.items():
                     # skip proper fields
                     if fields is not None and name not in fields:
                         continue
@@ -81,7 +75,7 @@ class MultiFormMetaclass(type):
         return cls.ModelForm._meta
 
 
-class MultiForm(with_metaclass(MultiFormMetaclass, object)):
+class MultiForm(MultiFormMetaclass):
     app_data_field = 'app_data'
     app_form_opts = AppFormOptsDescriptor()
 
@@ -97,7 +91,7 @@ class MultiForm(with_metaclass(MultiFormMetaclass, object)):
         # construct all the app forms
         self.app_forms = {}
         app_container = getattr(self.model_form.instance, self.app_data_field)
-        for label, label_opts in six.iteritems(self.get_app_form_opts()):
+        for label, label_opts in self.get_app_form_opts().items():
             prefix = label
             if self.model_form.prefix:
                 prefix = '%s-%s' % (self.model_form.prefix, prefix)
@@ -111,11 +105,11 @@ class MultiForm(with_metaclass(MultiFormMetaclass, object)):
 
         form_opts = {}
         # go through class hierarchy and collect form definitions
-        for c in cls.mro():
+        for c in cls.mro(cls):
             # not a MultiForm, skip
             if not hasattr(c, 'app_form_opts'):
                 continue
-            for label, label_opts in six.iteritems(c.app_form_opts):
+            for label, label_opts in c.app_form_opts.items():
                 if label in form_opts or label in skip_labels:
                     # form already defined, or should be skipped
                     continue
@@ -191,7 +185,7 @@ class MultiForm(with_metaclass(MultiFormMetaclass, object)):
 
     def _get_all_forms(self):
         yield self.model_form
-        for f in six.itervalues(self.app_forms):
+        for f in self.app_forms.values():
             yield f
 
     def __unicode__(self):
@@ -207,6 +201,8 @@ class MultiForm(with_metaclass(MultiFormMetaclass, object)):
         return mark_safe(u'\n'.join(map(methodcaller('as_p'), self._get_all_forms())))
 
     def is_valid(self):
+        for frm in self._get_all_forms():
+            print("DEBUG: is_valid() : self._get_all_forms()={0}".format(frm))
         return all(map(methodcaller('is_valid'), self._get_all_forms()))
 
     def has_changed(self):
@@ -237,7 +233,7 @@ class MultiForm(with_metaclass(MultiFormMetaclass, object)):
     def changed_data(self):
         if not hasattr(self, '_changed_data'):
             self._changed_data = cd = self.model_form.changed_data[:]
-            for label, form in six.iteritems(self.app_forms):
+            for label, form in self.app_forms.items():
                 cd.extend(map(lambda n: '%s.%s' % (label, n), form.changed_data))
         return self._changed_data
 
@@ -246,8 +242,8 @@ class MultiForm(with_metaclass(MultiFormMetaclass, object)):
         # combine all the errors
         if not hasattr(self, '_errors'):
             self._errors = self.model_form.errors.copy()
-            for label, form in six.iteritems(self.app_forms):
-                for k, v in six.iteritems(form.errors):
+            for label, form in self.app_forms.items():
+                for k, v in form.errors.items():
                     if k == NON_FIELD_ERRORS:
                         self._errors.setdefault(k, self.model_form.error_class()).extend(v)
                     else:

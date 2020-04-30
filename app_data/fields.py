@@ -3,7 +3,6 @@ import json
 from django import forms
 from django.db.models import TextField
 from django.utils.encoding import smart_text
-from django.utils import six
 
 from .registry import app_registry
 from .containers import AppDataContainerFactory
@@ -21,7 +20,7 @@ class AppDataDescriptor(object):
 
         value = instance.__dict__[self.field.name]
 
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = json.loads(value)
 
         if isinstance(value, dict) and not isinstance(value, AppDataContainerFactory):

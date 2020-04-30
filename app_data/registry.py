@@ -56,6 +56,5 @@ class NamespaceRegistry(object):
 
         del registry[namespace]
 
+
 app_registry = NamespaceRegistry()
-
-

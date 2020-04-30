@@ -5,7 +5,7 @@ description = "Extendable field and related tools that enable Django apps to ext
 authors = ["Carl Marshall <marshalc@users.noreply.github.com>"]
 
 [tool.poetry.dependencies]
-python = ">3.5"
+python = "^3.7"
 django = "~3"
 
 [tool.poetry.dev-dependencies]

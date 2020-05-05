@@ -8,7 +8,7 @@ from app_data.forms import multiform_factory, MultiForm, multiformset_factory
 from app_data.registry import app_registry
 from app_data.containers import AppDataContainer, AppDataForm
 
-from nose import tools
+import pytest
 
 from .cases import AppDataTestCase
 from .models import Article, Category
@@ -44,21 +44,18 @@ class TestMultiForm(AppDataTestCase):
         }
         formset = FormSet('Article', data, prefix='fs')
 
-        tools.assert_true(formset.is_valid())
+        assert formset.is_valid()
         formset.save()
-        tools.assert_equals(1, Article.objects.count())
+        assert Article.objects.count() == 1
         art = Article.objects.all()[0]
-        tools.assert_equals(
-            {
+        assert art.app_data == {
                 'myapp': {
                     'publish_from': '2010-11-12',
                     'publish_to': None,
                     'related_article': None,
                     'title': u'First'
                 },
-            },
-            art.app_data
-        )
+            }
 
     def test_multi_form_saves_all_the_forms(self):
         MF = multiform_factory(Article, form_opts={'myapp': {}, 'myapp2': {}}, exclude=())
@@ -68,11 +65,10 @@ class TestMultiForm(AppDataTestCase):
             'myapp2-foo': 'Second',
         }
         form = MF('Article', (), data)  # Does this do what it should though? It stops the error, but...??
-        tools.assert_true(form.is_valid())
-        tools.assert_equals({}, form.errors)
+        assert form.is_valid()
+        assert form.errors == {}
         art = form.save()
-        tools.assert_equals(
-            {
+        assert art.app_data == {
                 'myapp': {
                     'publish_from': '2010-11-12',
                     'publish_to': None,
@@ -80,9 +76,7 @@ class TestMultiForm(AppDataTestCase):
                     'title': u'First'
                 },
                 'myapp2': {'foo': 'Second'}
-            },
-            art.app_data
-        )
+            }
 
     def test_form_can_be_added_to_parent(self):
         MF = multiform_factory(Article, multiform=self.MyMultiForm, exclude=())
@@ -92,20 +86,17 @@ class TestMultiForm(AppDataTestCase):
             'myapp-publish_from': '2010-11-12',
         }
         form = MF('Article', (), data)  # Does this do what it should though? It stops the error, but...??
-        tools.assert_true(form.is_valid())
-        tools.assert_equals({}, form.errors)
+        assert form.is_valid()
+        assert form.errors == {}
         art = form.save()
-        tools.assert_equals(
-            {
+        assert art.app_data == {
                 'myapp': {
                     'publish_from': '2010-11-12',
                     'publish_to': None,
                     'related_article': None,
                     'title': u'First'
                 }
-            },
-            art.app_data
-        )
+            }
 
     def test_form_can_be_added(self):
         MF = multiform_factory(Article, exclude=())
@@ -115,20 +106,17 @@ class TestMultiForm(AppDataTestCase):
             'myapp-publish_from': '2010-11-12',
         }
         form = MF('Article', (), data)  # Does this do what it should though? It stops the error, but...??
-        tools.assert_true(form.is_valid())
-        tools.assert_equals({}, form.errors)
+        assert form.is_valid()
+        assert form.errors == {}
         art = form.save()
-        tools.assert_equals(
-            {
+        assert art.app_data == {
                 'myapp': {
                     'publish_from': '2010-11-12',
                     'publish_to': None,
                     'related_article': None,
                     'title': u'First'
                 }
-            },
-            art.app_data
-        )
+            }
 
     def test_added_form_doesnt_appear_on_parent(self):
         ArticleModelForm = modelform_factory(Article, exclude=())
@@ -136,7 +124,7 @@ class TestMultiForm(AppDataTestCase):
             ModelForm = ArticleModelForm
         MF.add_form('myapp', {})
 
-        tools.assert_equals({}, MultiForm.app_form_opts)
+        assert MultiForm.app_form_opts == {}
 
     def test_form_can_be_removed(self):
         MF = multiform_factory(Article, form_opts={'myapp': {}}, exclude=())
@@ -146,10 +134,10 @@ class TestMultiForm(AppDataTestCase):
             'myapp-publish_from': '2010-11-12',
         }
         form = MF('Article', (), data)  # Does this do what it should though? It stops the error, but...??
-        tools.assert_true(form.is_valid())
-        tools.assert_equals({}, form.errors)
+        assert form.is_valid()
+        assert form.errors == {}
         art = form.save()
-        tools.assert_equals({}, art.app_data)
+        assert art.app_data =={}
 
 
 class TestAppDataForms(AppDataTestCase):
@@ -175,8 +163,8 @@ class TestAppDataForms(AppDataTestCase):
 
     def test_empty_list_model_multiple_choice_field(self):
         article = Article()
-        tools.assert_true(isinstance(article.app_data.myotherapp.categories, list))
-        tools.assert_equals([], article.app_data.myotherapp.categories)
+        assert isinstance(article.app_data.myotherapp.categories, list)
+        assert article.app_data.myotherapp.categories == []
 
     def test_list_model_multiple_choice_field(self):
         c1, c2 = Category.objects.create(), Category.objects.create()
@@ -184,18 +172,18 @@ class TestAppDataForms(AppDataTestCase):
         article = Article()
         data = {'categories': [str(c1.pk), str(c2.pk)]}
         form = article.app_data.myotherapp.get_form(data)
-        tools.assert_true(form.is_valid())
+        assert form.is_valid()
         form.save()
         article.save()
         article = Article.objects.get(pk=article.pk)
-        tools.assert_true(isinstance(article.app_data.myotherapp.categories, list))
-        tools.assert_equals([c1, c2], article.app_data.myotherapp.categories)
+        assert isinstance(article.app_data.myotherapp.categories, list)
+        assert article.app_data.myotherapp.categories == [c1, c2]
 
     def test_instance_is_accessible_to_the_form(self):
         art = Article()
         form = art.app_data.myapp.get_form(self.data)
 
-        tools.assert_true(art is form.instance)
+        assert art is form.instance
 
     def test_foreign_keys_can_be_used(self):
         rel = Article.objects.create()
@@ -203,35 +191,35 @@ class TestAppDataForms(AppDataTestCase):
 
         article = Article()
         form = article.app_data.myapp.get_form(self.data)
-        tools.assert_true(form.is_valid())
+        assert form.is_valid()
         form.save()
         article.save()
         article = Article.objects.get(pk=article.pk)
-        tools.assert_equals(rel, article.app_data.myapp.related_article)
+        assert article.app_data.myapp.related_article == rel
 
     def test_current_app_data_will_be_used_as_initial(self):
         article = Article()
         article.app_data = {'myapp': {'title': 'Hello', 'publish_from': '2012-10-10'}}
         form = article.app_data.myapp.get_form()
-        tools.assert_equals({'title': 'Hello', 'publish_from': '2012-10-10'}, form.initial)
+        assert form.initial == {'title': 'Hello', 'publish_from': '2012-10-10'}
 
     def test_form_save_alters_data_on_model(self):
         article = Article()
         form = article.app_data.myapp.get_form(self.data)
-        tools.assert_true(form.is_valid())
+        assert form.is_valid()
         form.save()
         article.save()
         article = Article.objects.get(pk=article.pk)
-        tools.assert_equals(date(2010, 10, 1), article.app_data.myapp.publish_from)
+        assert article.app_data.myapp.publish_from == date(2010, 10, 1)
 
     def test_form_with_limitted_fields_only_updates_those(self):
         article = Article()
         form = article.app_data.myapp.get_form(self.data, fields=['title',])
-        tools.assert_true(form.is_valid())
+        assert form.is_valid()
         form.save()
 
         article.save()
         article = Article.objects.get(pk=article.pk)
-        tools.assert_equals('First!', article.app_data.myapp._data['title'])
-        tools.assert_false('publish_from' in article.app_data.myapp._data)
+        assert article.app_data.myapp._data['title'] == 'First!'
+        assert not 'publish_from' in article.app_data.myapp._data
 

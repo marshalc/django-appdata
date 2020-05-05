@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 
-from nose import tools
+import pytest
 
 from .models import Article, Author
 from .cases import AppDataTestCase
@@ -23,11 +23,10 @@ class TestAppDataAdmin(AppDataTestCase):
             'author_set-INITIAL_FORMS': '0',
             'author_set-TOTAL_FORMS': '0',
         })
-        tools.assert_equals(302, response.status_code)
-        tools.assert_equals(1, Article.objects.count())
+        assert response.status_code == 302
+        assert Article.objects.count() == 1
         art = Article.objects.all()[0]
-        tools.assert_equals(
-            {
+        assert art.app_data == {
                 u'publish': {
                     u'publish_from': u'2010-10-10 00:00:00',
                     u'published': False
@@ -36,9 +35,7 @@ class TestAppDataAdmin(AppDataTestCase):
                     u'title': u'Hullo!',
                     u'author': u'Me and Myself'
                 }
-            },
-            art.app_data
-        )
+            }
 
     def test_admin_can_create_article_with_inlines(self):
         response = self.client.post(self.url + 'add/', {
@@ -52,21 +49,18 @@ class TestAppDataAdmin(AppDataTestCase):
             'author_set-0-personal-first_name': 'Johnny',
             'author_set-0-personal-last_name': 'Mnemonic',
         })
-        tools.assert_equals(302, response.status_code)
-        tools.assert_equals(1, Article.objects.count())
+        assert response.status_code == 302
+        assert Article.objects.count() == 1
         art = Article.objects.all()[0]
-        tools.assert_equals(1, Author.objects.count())
+        assert Author.objects.count() == 1
         author = Author.objects.all()[0]
-        tools.assert_equals(author.publishable_id, art.id)
-        tools.assert_equals(
-            {
+        assert author.publishable_id == art.id
+        assert author.app_data == {
                 u'personal': {
                     u'first_name': u'Johnny', u'last_name': u'Mnemonic'
                 }
-            },
-            author.app_data
-        )
+            }
 
     def test_admin_can_render_multiform(self):
         response = self.client.get(self.url + 'add/')
-        tools.assert_equals(200, response.status_code)
+        assert response.status_code == 200

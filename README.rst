@@ -1,41 +1,36 @@
 Django AppData
 ##############
 
-Extandable field and related tools that enable Django apps to extend your
-reusable app.
+Extandable field and related tools that enable Django apps to extend your reusable app.
 
 Motivation
 **********
 
-When working with reusable django apps we often found that we needed to add
-something extra to the model or form the app provided. Some apps try to solve
-this by providing a flexible model definition and a pluggable form (see
-`django.contrib.comments` for an exmple of this approach) but even then it
-leads to some duplication of efforts.
+When working with reusable django apps we often found that we needed to add something extra to the model or form the
+app provided. Some apps try to solve this by providing a flexible model definition and a pluggable form (see
+``django.contrib.comments`` for an example of this approach) but even then it leads to some duplication of efforts.
 
-`django-appdata` app tries, through `AppDataField`, `MultiForm` and `AppDataModelAdmin`,
-to provide a standardised approach to extending existing apps.
+``django-appdata`` app tries, through ``AppDataField``, ``MultiForm`` and ``AppDataModelAdmin``, to provide a
+standardised approach to extending existing apps.
 
 Supported versions
 ******************
 
-Python: 2.7, 3.4, 3.5, 3.6, 3.7
-Django: 1.8, 1.9, 1.10, 1.11, 2.0, 2.2
+Python: 2.7, 3.5, 3.6, 3.7, 3.8
+Django: 1.11, 2.2, 3.0
 
-Upgrading to 0.2
+Upgrading to 0.3
 ****************
 
-If you are upgrading from a 0.1.x version, please note the following incompatible changes in 0.2
+If you are upgrading from a 0.2.x version, please note the following incompatible changes in 0.3
 
-* Dropped Django < 1.8 and Python 2.6 / 3.3 compatibility
-* Dropped support for `ModelAdmin.declared_fieldsets` attribute, use `ModelAdmin.get_fieldsets` method  as documented
-  below
+* Dropped Django < 1.11 and Python 3.4 compatibility
 
 
 Extending Models
 ****************
 
-When you have an extendable django app using the `AppDataField`::
+When you have an extendable django app using the ``AppDataField``::
 
     from django.db import models
     from app_data import AppDataField
@@ -44,9 +39,8 @@ When you have an extendable django app using the `AppDataField`::
         text = models.TextField()
         app_data = AppDataField()
 
-your code can register a namespace on any (or all) `AppDataField` and store
-it's own data there by registering a *container* (subclass of
-`AppDataContainer`). To define the data you use django's form framework::
+your code can register a namespace on any (or all) ``AppDataField`` and store it's own data there by registering a
+*container* (subclass of ``AppDataContainer``). To define the data you use django's form framework::
 
     from django.forms.models import ModelMultipleChoiceField
     from app_data import app_registry, AppDataForm, AppDataContainer
@@ -65,7 +59,7 @@ it's own data there by registering a *container* (subclass of
 
     app_registry.register('tagging', TaggingAppDataContainer)
 
-This should give you access to `'tagging'` namespace in any defined `AppDataField`::
+This should give you access to ``'tagging'`` namespace in any defined ``AppDataField``::
 
     from blog_app.models import BlogPost
 
@@ -76,12 +70,11 @@ This should give you access to `'tagging'` namespace in any defined `AppDataFiel
 Additional Options
 ~~~~~~~~~~~~~~~~~~
 
-Note that if you don't need to add custom methods to your container you can
-just use a factory to create the subclass::
+Note that if you don't need to add custom methods to your container you can just use a factory to create the subclass::
 
     app_registry.register('tagging', AppDataContainer.from_form(TaggingAppDataForm))
 
-Additionaly you can restrict the registration to a given model::
+Additionally you can restrict the registration to a given model::
 
     from blog_app.models import BlogPost
 
@@ -90,31 +83,28 @@ Additionaly you can restrict the registration to a given model::
 Extending Forms
 ***************
 
-`django-appdata` supplies a `MultiForm` class - a wrapper around django's `ModelForm`
-with optional added sub-forms that corresponds to namespaces registered in the
-model's `AppDataField`, typically the extendable app would create and use a
-`MultiForm` instead of a regular `ModelForm`::
+``django-appdata`` supplies a ``MultiForm`` class - a wrapper around django's ``ModelForm`` with optional added
+sub-forms that corresponds to namespaces registered in the model's ``AppDataField``, typically the extendable app would
+create and use a ``MultiForm`` instead of a regular ``ModelForm``::
 
     from app_data.forms import multiform_factory
     from .models import BlogPost
 
     BlogPostMultiForm = multiform_factory(BlogPost)
 
-And when using that app any project can add additional sub-forms to that `MultiForm`::
+And when using that app any project can add additional sub-forms to that ``MultiForm``::
 
     from blog_app.forms import BlogPostMultiForm
 
     BlogPostMultiForm.add_form('tagging', {'fields': ['public_tags']})
 
-This way when the reusable app's code can remain unchanged and we can inject
-additional form logic to its processing.
+This way when the reusable app's code can remain unchanged and we can inject additional form logic to its processing.
 
 Additional Options
 ~~~~~~~~~~~~~~~~~~
 
-Any arguments and keyword arguments are passed without change to the
-`ModelForm` class the `MultiForm` is wrapping so even if you have custom args
-for your `ModelForm` everything will still work::
+Any arguments and keyword arguments are passed without change to the ``ModelForm`` class the ``MultiForm`` is wrapping
+so even if you have custom args for your ``ModelForm`` everything will still work::
 
     from django.forms.models import BaseModelForm
 
@@ -135,8 +125,7 @@ And of course you are not limited to the use of a factory function::
 MultiForms in Admin
 *******************
 
-If you wish to add your own code to the admin interface, just use
-`AppDataModelAdmin`::
+If you wish to add your own code to the admin interface, just use ``AppDataModelAdmin``::
 
     from django.contrib import admin
     from app_data.admin import AppDataModelAdmin
@@ -155,22 +144,20 @@ If you wish to add your own code to the admin interface, just use
 Additional Options
 ~~~~~~~~~~~~~~~~~~
 
-As with django's admin and forms you can supply your own `MultiForm` class by
-using the `multiform` attribute of `AppDataModelAdmin`.
+As with django's admin and forms you can supply your own ``MultiForm`` class by using the ``multiform`` attribute of
+``AppDataModelAdmin``.
 
 Behind the scenes
 *****************
 
-`django-appdata` uses a `TextField` to store the data on the model using JSON
-and django's forms framework for (de)serialization and validation of the data.
+``django-appdata`` uses a ``TextField`` to store the data on the model using JSON and django's forms framework for
+(de)serialization and validation of the data.
 
-When accessing the containers in the field we will try to locate the
-appropriate container in the registry. If none is found, plain data will be
-returned if present (dict). To assure everything working properly we recommend
-putting some sort of init code in place for your project that will make sure all
-the registration is done before any actual code is run. We are using a module
-called `register` in our apps and then a `piece of code`_ similar to admin's
-autodiscover to iterate through installed apps and load this module.
+When accessing the containers in the field we will try to locate the appropriate container in the registry. If none is
+found, plain data will be returned if present (dict). To assure everything working properly we recommend putting some
+sort of init code in place for your project that will make sure all the registration is done before any actual code is
+run. We are using a module called ``register`` in our apps and then a `piece of code`_ similar to admin's autodiscover
+to iterate through installed apps and load this module.
 
 .. _`piece of code`: https://github.com/ella/ella/blob/master/ella/utils/installedapps.py#L27
 

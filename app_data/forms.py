@@ -1,5 +1,6 @@
 from operator import methodcaller
 from copy import deepcopy
+import six
 
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.forms import Form
@@ -10,9 +11,9 @@ from django.forms.utils import pretty_name
 
 
 class AppDataForm(Form):
-    def __init__(self, app_container, data=None, files=None, fields=(), exclude=(), **kwargs):
+    def __init__(self, app_container, data=None, files=None, fields=(), exclude=(), *args, **kwargs):
         self.app_container = app_container
-        super(AppDataForm, self).__init__(data, files, **kwargs)
+        super(AppDataForm, self).__init__(data, files, *args, **kwargs)
 
         if fields or exclude:
             for f in list(self.fields.keys()):
@@ -75,13 +76,17 @@ class MultiFormMetaclass(type):
         return cls.ModelForm._meta
 
 
-class MultiForm(MultiFormMetaclass):
+class MultiForm(six.with_metaclass(MultiFormMetaclass, object)):
     app_data_field = 'app_data'
     app_form_opts = AppFormOptsDescriptor()
 
     def __init__(self, *args, **kwargs):
         # construct the main model form
         self.model_form = self.ModelForm(*args, **kwargs)
+        try:
+            self.label_suffix = self.model_form.label_suffix
+        except AttributeError:
+            pass
         if self.model_form.is_bound:
             data = self.model_form.data
             files = self.model_form.files
@@ -97,6 +102,7 @@ class MultiForm(MultiFormMetaclass):
                 prefix = '%s-%s' % (self.model_form.prefix, prefix)
             self.app_forms[label] = app_container[label].get_form(data, files, prefix=prefix, **label_opts)
 
+
     @classmethod
     def get_app_form_opts(cls):
         """Utility method to combine app_form_opts from all base classes."""
@@ -105,7 +111,7 @@ class MultiForm(MultiFormMetaclass):
 
         form_opts = {}
         # go through class hierarchy and collect form definitions
-        for c in cls.mro(cls):
+        for c in cls.mro():  # Do we need `cls` as an arg here?
             # not a MultiForm, skip
             if not hasattr(c, 'app_form_opts'):
                 continue
@@ -201,8 +207,6 @@ class MultiForm(MultiFormMetaclass):
         return mark_safe(u'\n'.join(map(methodcaller('as_p'), self._get_all_forms())))
 
     def is_valid(self):
-        for frm in self._get_all_forms():
-            print("DEBUG: is_valid() : self._get_all_forms()={0}".format(frm))
         return all(map(methodcaller('is_valid'), self._get_all_forms()))
 
     def has_changed(self):

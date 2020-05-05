@@ -42,7 +42,7 @@ class TestMultiForm(AppDataTestCase):
             'fs-0-myapp-title': 'First',
             'fs-0-myapp-publish_from': '2010-11-12',
         }
-        formset = FormSet('Article', data, prefix='fs')
+        formset = FormSet(data, prefix='fs')
 
         assert formset.is_valid()
         formset.save()
@@ -64,7 +64,7 @@ class TestMultiForm(AppDataTestCase):
             'myapp-publish_from': '2010-11-12',
             'myapp2-foo': 'Second',
         }
-        form = MF('Article', (), data)  # Does this do what it should though? It stops the error, but...??
+        form = MF(data)
         assert form.is_valid()
         assert form.errors == {}
         art = form.save()
@@ -85,7 +85,7 @@ class TestMultiForm(AppDataTestCase):
             'myapp-title': 'First',
             'myapp-publish_from': '2010-11-12',
         }
-        form = MF('Article', (), data)  # Does this do what it should though? It stops the error, but...??
+        form = MF(data)
         assert form.is_valid()
         assert form.errors == {}
         art = form.save()
@@ -105,7 +105,7 @@ class TestMultiForm(AppDataTestCase):
             'myapp-title': 'First',
             'myapp-publish_from': '2010-11-12',
         }
-        form = MF('Article', (), data)  # Does this do what it should though? It stops the error, but...??
+        form = MF(data)
         assert form.is_valid()
         assert form.errors == {}
         art = form.save()
@@ -133,7 +133,7 @@ class TestMultiForm(AppDataTestCase):
             'myapp-title': 'First',
             'myapp-publish_from': '2010-11-12',
         }
-        form = MF('Article', (), data)  # Does this do what it should though? It stops the error, but...??
+        form = MF(data)
         assert form.is_valid()
         assert form.errors == {}
         art = form.save()

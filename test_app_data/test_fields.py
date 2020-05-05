@@ -123,16 +123,16 @@ class TestAppDataContainers(AppDataTestCase):
         art.app_data['dummy']
         assert art.app_data == {'dummy': {}}
 
-    # @pytest.raises(NamespaceConflict)
     def test_namespace_can_only_be_registered_once(self):
-        app_registry.register('dummy', DummyAppDataContainer)
-        app_registry.register('dummy', DummyAppDataContainer2)
+        with pytest.raises(NamespaceConflict):
+            app_registry.register('dummy', DummyAppDataContainer)
+            app_registry.register('dummy', DummyAppDataContainer2)
 
-    # @pytest.raises(NamespaceMissing)
     def test_unregistered_namespace_cannot_be_unregistered(self):
-        app_registry.register('dummy', DummyAppDataContainer)
-        app_registry.unregister('dummy')
-        app_registry.unregister('dummy')
+        with pytest.raises(NamespaceMissing):
+            app_registry.register('dummy', DummyAppDataContainer)
+            app_registry.unregister('dummy')
+            app_registry.unregister('dummy')
 
     def test_override_class_for_model_only(self):
         app_registry.register('dummy', DummyAppDataContainer)

@@ -2,7 +2,32 @@
 name = "django-appdata"
 version = "0.3.0"
 description = "Extendable field and related tools that enable Django apps to extend your reusable app"
-authors = ["Carl Marshall <marshalc@users.noreply.github.com>"]
+authors = [
+    "Ella Development Team <dev@ellaproject.cz>",
+    "Iacopo Spalletti <i.spalletti@nephila.digital>",
+    "Carl Marshall <marshalc@users.noreply.github.com>"
+]
+readme = "README.rst"
+homepage = "https://github.com/marshalc/django-appdata"
+repository = "https://github.com/marshalc/django-appdata"
+license = "BSD-3-Clause"
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Framework :: Django',
+    'Framework :: Django :: 2.2',
+    'Framework :: Django :: 3.0',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Operating System :: OS Independent',
+]
+packages=[
+    { include = 'app_data' },
+    { include = 'README.rst' },
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"

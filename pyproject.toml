@@ -24,14 +24,14 @@ classifiers = [
     'Programming Language :: Python :: 3.8',
     'Operating System :: OS Independent',
 ]
-packages=[
+packages = [
     { include = 'app_data' },
     { include = 'README.rst' },
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
-django = "~3"
+python = ">=3.6 <4"
+django = "3.*"
 
 [tool.poetry.dev-dependencies]
 coverage = "^5.1"
